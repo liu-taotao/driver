@@ -1,6 +1,6 @@
 ## sum up
 
-> 小新注: Here**linux-driver\uboot\application**related``demo``
+> 小新注: Here **linux-driver\uboot\application** related ``demo``
 
 **1.linux-driver** 
 > This includes some commonly used ``character device drivers``, a small number of block ``device drivers``, and no network related drivers for the time being.
