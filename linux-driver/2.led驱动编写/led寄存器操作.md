@@ -189,7 +189,7 @@ MODULE_AUTHOR("liutao");
 
 记得驱动加载后要记得mknod /dev/led c 200 0（创建字符设备节点，否则APP无法运行）
 
-![image-20230722164629887](.\pic\加载字符设备节点.png)
+![image-20230722164629887](pic/加载字符设备节点.png)
 
 ```c
 #include <sys/types.h>
