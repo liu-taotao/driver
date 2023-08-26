@@ -1,0 +1,2 @@
+setenv bootargs 'console=tty1 console=ttymxc0,115200 root=/dev/nfs rw nfsroot=192.168.1.25:/home/local/linux/nfs/rootfs ip=192.168.1.50:192.168.1.25:192.168.1.1:255.255.255.0::eth0:off'
+    
