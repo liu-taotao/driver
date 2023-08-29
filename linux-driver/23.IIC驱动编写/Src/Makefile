@@ -2,7 +2,7 @@ KERNELDIR := /home/local/linux/IMX6ULL/linux/alientek_linux
 
 CURRENT_PATH := $(shell pwd)
 
-obj-m := liutaoap3216c.o
+obj-m := newap3216c.o
 
 build: kernel_modules
 
