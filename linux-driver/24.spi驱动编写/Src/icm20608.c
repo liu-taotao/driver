@@ -21,16 +21,9 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 #include "icm20608reg.h"
-/***************************************************************
-Copyright © ALIENTEK Co., Ltd. 1998-2029. All rights reserved.
-文件名		: icm20608.c
-作者	  	: 左忠凯
-版本	   	: V1.0
-描述	   	: ICM20608 SPI驱动程序
-其他	   	: 无
-论坛 	   	: www.openedv.com
-日志	   	: 初版V1.0 2019/9/2 左忠凯创建
-***************************************************************/
+
+
+
 #define ICM20608_CNT	1
 #define ICM20608_NAME	"icm20608"
 
