@@ -7,16 +7,37 @@
 	data[]，排好序的数组
 返回值：无 
 */
-void BubbleSort(int data[], int n)
-{
-	int i, j, t;
-	for (i = 0; i < n-1; i++) {
-		for (j = 0; j < n-i; j++) {
-			if (data[j+1] < data[j]) {
-				t = data[j+1];
-				data[j+1] = data[j];
-				data[j] = t;
-			}
-		}
-	}
+#include <stdio.h>
+
+void bubbleSort(int arr[], int n) {
+    int i, j;
+    for (i = 0; i < n-1; i++) {
+        for (j = 0; j < n-i-1; j++) {
+            if (arr[j] > arr[j+1]) {
+                // 交换arr[j]和arr[j+1]
+                int temp = arr[j];
+                arr[j] = arr[j+1];
+                arr[j+1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    
+    printf("排序前的数组：\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    
+    bubbleSort(arr, n);
+    
+    printf("\n排序后的数组：\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    
+    return 0;
 }
