@@ -17,5 +17,5 @@
 **5.arithmetic** 
 > some arithmetic test demo
 
-**6.code review**
+**[6.code review](./other/liyupi规范.png)**
 > 
