@@ -19,3 +19,6 @@
 
 **[6.code review](./other/liyupi规范.png)**
 > update code review
+
+**[7.some docx and basic knowledge points](./other/面试常考八股文及算法.md)
+> basic knoledge points
