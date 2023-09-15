@@ -21,4 +21,4 @@
 > update code review
 
 **[7.some docx and basic knowledge points](./other/面试常考八股文及算法.md)**
-> basic knoledge points
+> basic knoledge software
