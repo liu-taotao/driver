@@ -1,13 +1,14 @@
 
 /**
- * @brief 
+ * @brief 注意打印的东西 第一个%s: flower 第二个%c: f 
  * 
  * @param strs 
  * @param strsSize 
  * @return char* 
  */
 char * longestCommonPrefix(char ** strs, int strsSize){
-    //printf("%s ", str[0]);
+    // printf("%s ", strs[0]);
+    // printf("%c ", strs[0][0]);
     if (strsSize == 0) {
         return "";
     }
