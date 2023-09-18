@@ -12,12 +12,12 @@ bool isPalindrome(char * s){
         return false;
     }
     while (s[i]) {
-        if (s[i] >= 48 && s[i] <= 57) {//这个判断是防止0-9的数字混入其中
+        if (s[i] >= 48 && s[i] <= 57) {//这个判断是防止ascii码0-9的数字混入其中
             s[j++] = s[i];
-        } else if (s[i] >= 65 && s[i] <= 90) {//这个是大写的A-Z
+        } else if (s[i] >= 65 && s[i] <= 90) {//这个ascii码是大写的A-Z
             s[i] += 32;
             s[j++] = s[i];
-        } else if (s[i] >= 97 && s[i] <= 122) {//这个是小写的a-z
+        } else if (s[i] >= 97 && s[i] <= 122) {//这个ascii码是小写的a-z
             s[j++] = s[i];
         }
         i++;
