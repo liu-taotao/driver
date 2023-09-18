@@ -22,8 +22,6 @@ bool isPalindrome(char * s){
         }
         i++;
     }
-
-
     l = 0;
     r = j-1;
     while (l < r) {//这里使用到了双指针
