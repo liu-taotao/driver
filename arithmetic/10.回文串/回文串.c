@@ -1,7 +1,7 @@
 /**
  * @brief 这个是一个验证回文串的算法(使用到了双指针，自己注意查看。在一定的while里面是左边小于右边)
  * 
- * @param s 
+ * @param s 输入的字符串
  * @return true 
  * @return false 
  */
