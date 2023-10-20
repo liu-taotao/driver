@@ -1,6 +1,7 @@
 
 /**
- * @brief 表示 最右下角的就是这个机器所走的所有路径总和
+ * @brief 表示 最右下角的就是这个机器所走的所有路径总和 
+ *         起始为1 每一次都是一行一行的加
  * 
  * @param obstacleGrid 
  * @param obstacleGridSize 
