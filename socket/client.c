@@ -106,6 +106,25 @@ void menu() {
     while (1) {
         printf("1. 连接\n");
         printf("2. 断开\n");
+        printf("-----------------\n");
+        printf("Please enter your choice: ");
+        scanf("%d", &choice);
+        getchar();
+        switch (choice) {
+            case 1:
+                connectToServer();
+                break;
+            case 2:
+                disconnectFromServer();
+                exit(EXIT_SUCCESS);
+            default:
+                printf("无效的选择，请重试。\n");
+        }
+        break;
+    }
+    while (1) {
+        printf("1. 连接\n");
+        printf("2. 断开\n");
         printf("3. 获取时间\n");
         printf("4. 获取名字\n");
         printf("5. 获取客户端列表\n");
@@ -153,6 +172,7 @@ void menu() {
             default:
                 printf("无效的选择，请重试。\n");
         }
+        sleep(1);
         processMessages();
     }
 }
