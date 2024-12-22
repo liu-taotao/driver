@@ -6,106 +6,133 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <time.h>
-#include <sys/utsname.h>
-#define SERVER_PORT 8888 //端口号不能发生冲突,不常用的端口号通常大于 5000
-// 在 recv 之后立即调用此函数
-char* trim_newline(char* str) {
-    size_t len = strlen(str);
-    if (len > 0 && str[len - 1] == '\n') {
-        str[len - 1] = '\0';
-    }
-    return str;
-}
-void *handle_client(void *arg) {
-    int client_socket = *((int *)arg);
-    int ans = 0;
-    char buffer[1024] = {0};
-    
-    while (1) {
-        memset(buffer, 0, sizeof(buffer));
-        ans = recv(client_socket, buffer, sizeof(buffer), 0);
-        // 将读取到的数据以字符串形式打印出来   
-        printf("from client: %s\n", buffer);
-        trim_newline(buffer); // 去除换行符
-        if (strcmp(buffer, "time") == 0) {
-            time_t rawtime;
-            struct tm *timeinfo;
-            time(&rawtime);
-            timeinfo = localtime(&rawtime);
-            char *time_str = asctime(timeinfo);
-            printf("send client: %s\n", time_str);
-            send(client_socket, time_str, strlen(time_str), 0);
-        } 
-        else if (strcmp(buffer, "hostname") == 0) {
-            struct utsname info;
-            uname(&info);
-            send(client_socket, info.nodename, strlen(info.nodename), 0);
-        }
-        // 如果读取到"exit"则关闭套接字退出程序
-        if (0 == strncmp("exit", buffer, 4)) {
-            printf("server exit...\n");
-            printf("Client disconnected: %d\n", client_socket);
-            send(client_socket, buffer, strlen(buffer), 0);
-            //close(client_socket);
+
+#define PORT 8888 // 使用学号的后4位作为服务器的监听端口
+
+typedef struct {
+    int sockfd;
+    struct sockaddr_in addr;
+    bool connected;
+} Client;
+
+Client clients[10];
+int clientCount = 0;
+pthread_mutex_t lock;
+
+void* handleClient(void* arg) {
+    int clientSockfd = *(int*)arg;
+    free(arg);
+    char buffer[512];
+    while (true) {
+        int ret = recv(clientSockfd, buffer, sizeof(buffer), 0);
+        if (ret <= 0) {
             break;
         }
-        if (ans <= 0 ) {
-            printf("Client disconnected: %d\n", client_socket);
-            break; // 退出循环，结束线程
+        buffer[ret] = '\0';
+        printf("Received request: %s\n", buffer);
+        if (strcmp(buffer, "time") == 0) {
+            time_t rawtime;
+            struct tm* timeinfo;
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+            char response[512];
+            snprintf(response, sizeof(response), "Current time: %s", asctime(timeinfo));
+            send(clientSockfd, response, strlen(response), 0);
+        } else if (strcmp(buffer, "name") == 0) {
+            send(clientSockfd, "Server Name: MyServer", 19, 0);
+        } else if (strcmp(buffer, "list") == 0) {
+            char response[512] = "Client List:\n";
+            pthread_mutex_lock(&lock);
+            for (int i = 0; i < clientCount; i++) {
+                if (clients[i].connected) {
+                    char clientInfo[128];
+                    snprintf(clientInfo, sizeof(clientInfo), "Client %d: %s:%d\n", i, inet_ntoa(clients[i].addr.sin_addr), ntohs(clients[i].addr.sin_port));
+                    strcat(response, clientInfo);
+                }
+            }
+            pthread_mutex_unlock(&lock);
+            send(clientSockfd, response, strlen(response), 0);
+        } else if (strncmp(buffer, "message ", 8) == 0) {
+            int clientNumber;
+            char message[512];
+            sscanf(buffer, "message %d %[^\n]", &clientNumber, message);
+            pthread_mutex_lock(&lock);
+            if (clientNumber >= 0 && clientNumber < clientCount && clients[clientNumber].connected) {
+                char response[512];
+                snprintf(response, sizeof(response), "Message from client: %s", message);
+                send(clients[clientNumber].sockfd, response, strlen(response), 0);
+                snprintf(response, sizeof(response), "Message sent successfully");
+                send(clientSockfd, response, strlen(response), 0);
+            } else {
+                send(clientSockfd, "Client not found", 16, 0);
+            }
+            pthread_mutex_unlock(&lock);
+        } else {
+            send(clientSockfd, "Unknown command", 17, 0);
+        }
+        memset(buffer, 0x0, sizeof(buffer));
+    }
+    close(clientSockfd);
+    pthread_mutex_lock(&lock);
+    for (int i = 0; i < clientCount; i++) {
+        if (clients[i].sockfd == clientSockfd) {
+            clients[i].connected = false;
+            break;
         }
     }
-    
-    close(client_socket);
+    pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
 }
-int main(void)
-{
-    struct sockaddr_in server_addr = {0};
-    struct sockaddr_in client_addr = {0};
-    char ip_str[20] = {0};
-    int sockfd, connfd;
-    int addrlen = sizeof(client_addr);
-    char recvbuf[512];
-    int ret;
-    /* 打开套接字，得到套接字描述符 */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (0 > sockfd) {
+
+int main(void) {
+    int serverSockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (0 > serverSockfd) {
         perror("socket error");
         exit(EXIT_FAILURE);
     }
-    /* 将套接字与指定端口号进行绑定 */
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons(SERVER_PORT);
-    ret = bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    if (0 > ret) {
+    struct sockaddr_in serverAddr = {0};
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(PORT);
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    if (0 > bind(serverSockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr))) {
         perror("bind error");
-        close(sockfd);
+        close(serverSockfd);
         exit(EXIT_FAILURE);
     }
-    /* 使服务器进入监听状态 */
-    ret = listen(sockfd, 50);
-    if (0 > ret) {
+    if (0 > listen(serverSockfd, 10)) {
         perror("listen error");
-        close(sockfd);
+        close(serverSockfd);
         exit(EXIT_FAILURE);
     }
-
-    pthread_t tid;
-    
-    while (1) {
-        connfd = accept(sockfd, (struct sockaddr *)&client_addr, &addrlen);
-        printf("有客户端接入...\n");
-        inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, ip_str, sizeof(ip_str));
-        printf("客户端主机的 IP 地址: %s\n", ip_str);
-        printf("客户端进程的端口号: %d\n", client_addr.sin_port);
-        pthread_create(&tid, NULL, handle_client, (void *)&connfd);
-        pthread_detach(tid);
+    pthread_mutex_init(&lock, NULL);
+    printf("Server listening on port %d...\n", PORT);
+    while (true) {
+        struct sockaddr_in clientAddr = {0};
+        socklen_t clientAddrLen = sizeof(clientAddr);
+        int clientSockfd = accept(serverSockfd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+        if (0 > clientSockfd) {
+            perror("accept error");
+            continue;
+        }
+        pthread_mutex_lock(&lock);
+        if (clientCount < 10) {
+            clients[clientCount].sockfd = clientSockfd;
+            clients[clientCount].addr = clientAddr;
+            clients[clientCount].connected = true;
+            clientCount++;
+        } else {
+            close(clientSockfd);
+        }
+        pthread_mutex_unlock(&lock);
+        pthread_t thread;
+        int* clientSockfdPtr = malloc(sizeof(int));
+        *clientSockfdPtr = clientSockfd;
+        pthread_create(&thread, NULL, handleClient, clientSockfdPtr);
     }
-    /* 关闭套接字 */
-    close(sockfd);
+    close(serverSockfd);
+    pthread_mutex_destroy(&lock);
     exit(EXIT_SUCCESS);
 }
