@@ -42,7 +42,11 @@ void* handleClient(void* arg) {
             snprintf(response, sizeof(response), "Current time: %s", asctime(timeinfo));
             send(clientSockfd, response, strlen(response), 0);
         } else if (strcmp(buffer, "name") == 0) {
-            send(clientSockfd, "Server Name: MyServer", 19, 0);
+            char hostname[256];
+            gethostname(hostname, sizeof(hostname));
+            char response[276];  // 确保足够大以容纳 "Server Name: " 和主机名
+            snprintf(response, sizeof(response), "Server Name: %s", hostname);
+            send(clientSockfd, response, strlen(response), 0);
         } else if (strcmp(buffer, "list") == 0) {
             char response[512] = "Client List:\n";
             pthread_mutex_lock(&lock);
@@ -64,7 +68,7 @@ void* handleClient(void* arg) {
                 char response[512];
                 snprintf(response, sizeof(response), "Message from client: %s", message);
                 send(clients[clientNumber].sockfd, response, strlen(response), 0);
-                snprintf(response, sizeof(response), "Message sent successfully");
+                snprintf(response, sizeof(response), "Message send successfully");
                 send(clientSockfd, response, strlen(response), 0);
             } else {
                 send(clientSockfd, "Client not found", 16, 0);
